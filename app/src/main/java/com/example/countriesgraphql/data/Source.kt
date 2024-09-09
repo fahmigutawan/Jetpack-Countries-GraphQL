@@ -9,7 +9,7 @@ import javax.inject.Inject
 class Source @Inject constructor(
     private val client:ApolloClient
 ){
-    suspend fun getCountryByCode(code:String) = client.query(CountryQuery()).execute()
+    suspend fun getCountryByCode(code:String) = client.query(CountryQuery(code)).execute()
 
     suspend fun getCountries() = client.query(CountriesQuery()).execute()
 }
