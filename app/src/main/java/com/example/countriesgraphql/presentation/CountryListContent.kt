@@ -14,7 +14,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -35,47 +37,73 @@ fun CountryListContent(modifier: Modifier = Modifier) {
     val countries = viewModel.countries.collectAsState()
     val country = viewModel.country.collectAsState()
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize()
-    ) {
-        if (countries.value is Resource.Loading) {
-            item {
-                Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(42.dp)
-                    )
+    Column {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(top = 24.dp, bottom = 12.dp),
+            value = viewModel.searchInput.value,
+            onValueChange = {
+                viewModel.searchInput.value = it
+            },
+            placeholder = {
+                Text(text = "Cari negara...")
+            }
+        )
+
+        LazyColumn(
+            modifier = modifier.fillMaxSize().weight(1f)
+        ) {
+            if (countries.value is Resource.Loading) {
+                item {
+                    Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(42.dp)
+                        )
+                    }
                 }
             }
-        }
 
-        if (countries.value is Resource.Success) {
-            items(countries.value.data?.countries ?: listOf()) { item ->
-                item?.let { itemNotNull ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                //TODO
-                            }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 24.dp, horizontal = 24.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            if (countries.value is Resource.Success) {
+                items(
+                    countries
+                        .value
+                        .data
+                        ?.countries
+                        ?.filter {
+                            if (viewModel.searchInput.value.isEmpty()) true
+                            else it?.name?.lowercase()?.contains(viewModel.searchInput.value) ?: true
+                        } ?: listOf()
+                ) { item ->
+                    item?.let { itemNotNull ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    //TODO
+                                }
                         ) {
-                            Text(
-                                text = itemNotNull.emoji ?: "-",
-                                fontSize = 32.sp,
+                            Row(
+                                modifier = Modifier.padding(vertical = 24.dp, horizontal = 24.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    text = itemNotNull.emoji ?: "-",
+                                    fontSize = 32.sp,
+                                )
+                                Text(text = itemNotNull.name ?: "...", fontSize = 16.sp)
+                            }
+                            HorizontalDivider(
+                                thickness = 1.dp,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
-                            Text(text = itemNotNull.name ?: "...", fontSize = 16.sp)
                         }
-                        HorizontalDivider(
-                            thickness = 1.dp,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
                     }
                 }
             }
         }
     }
+
 }
